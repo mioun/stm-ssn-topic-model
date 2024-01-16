@@ -1,0 +1,27 @@
+TRAIN:
+  MODEL:
+    - 'w: 1'
+    - 'w_max: 1'
+    - 'w_min: 1'
+    - 'alpha: 1'
+    - 'eta: 1'
+    - 'taupre: second'
+    - 'dApre/dt=-Apre/taupre : 1 (event-driven)'
+  STATE:
+    w_max: 10
+    w_min: 0
+    taupre: 80*ms
+    eta: 0.001
+  PRESYNAPTIC_EVENT:
+    - 'ge += w'
+    - 'Apre = 1'
+  POSTSYNAPTIC_EVENT:
+    - 'w = clip(w + eta*(Apre-R*w*w),w_min,w_max)'
+TEST:
+  MODEL:
+    - 'w: 1'
+  PRESYNAPTIC_EVENT:
+    - 'ge += w'
+
+
+

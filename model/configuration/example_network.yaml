@@ -1,0 +1,14 @@
+TRAIN:
+  EQUATIONS:
+    dv/dt = (Ie+(vr-v))/ taum: volt
+    Ie = ge * (Ee-v): volt (unless refractory)
+    dge/dt = -ge / taue: 1
+    taum: second
+    taue: second
+    vr: volt
+    Ee: volt
+  CONSTANTS:
+    taum: 100*ms
+    taue: 5*ms
+    vr: -65*mV
+

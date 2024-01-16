@@ -1,0 +1,72 @@
+TRAIN:
+  MODEL:
+    - 'dv/dt = (Ie+(vr-v)+Ii)/ taum: volt'
+    - 'Ie = ge * (Ee-v): volt'
+    - 'Ii = clip(gi * (Ei-v),-10000*mV,0*mV): volt'
+    - 'dge/dt = -ge / taue: 1'
+    - 'dgi/dt = -gi / taui: 1'
+    - 'dR/dt = -R / tau_scaling: 1'
+    - 'taum: second'
+    - 'taue: second'
+    - 'taui: second'
+    - 'tau_scaling: second'
+    - 'vr: volt'
+    - 'Ee: volt'
+    - 'Ei: volt'
+    - 'vt: volt'
+    - 'refractory_period : second'
+  RESET:
+    - 'v = vr; R+=1'
+  TRESH_HOLD:
+    - 'v > vt'
+  METHOD:
+    - 'euler'
+  REFRACTORY:
+    - 'refractory_period'
+  STATE:
+    taum: 100*ms
+    taue: 10*ms
+    taui: 5*ms
+    tau_scaling: 100*ms
+    vr: -65*mV
+    vt: -55*mV
+    Ee: 0*mV
+    Ei: -90*mV
+    refractory_period: 5*ms
+    v: -65*mV
+    gi: 0
+    ge: 0
+    R: 0
+TEST:
+  MODEL:
+    - 'dv/dt = (Ie+(vr-v)+Ii)/ taum: volt'
+    - 'Ie = ge * (Ee-v): volt'
+    - 'Ii = clip(gi * (Ei-v),-10000*mV,0*mV): volt'
+    - 'dge/dt = -ge / taue: 1'
+    - 'dgi/dt = -gi / taui: 1'
+    - 'taum: second'
+    - 'taue: second'
+    - 'taui: second'
+    - 'vr: volt'
+    - 'Ee: volt'
+    - 'Ei: volt'
+    - 'vt: volt'
+    - 'refractory_period : second'
+  STATE:
+    taum: 100*ms
+    taue: 10*ms
+    taui: 5*ms
+    vr: -65*mV
+    vt: -55*mV
+    Ee: 0*mV
+    v: -65*mV
+    Ei: -90*mV
+    refractory_period: 5*ms
+  RESET:
+    - 'v = vr'
+  TRESH_HOLD:
+    - 'v > vt'
+  METHOD:
+    - 'euler'
+  REFRACTORY:
+    - 'refractory_period'
