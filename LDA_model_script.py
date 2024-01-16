@@ -33,7 +33,7 @@ else:
 
 EPOCHS = 30
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
-MODEL_PATH = f'model-output-data/{DATA_SET}-article-final'
+MODEL_PATH = f'model-output-data/{DATA_SET}'
 
 data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PATH).load_dataset()
 print(len(data_set.train_labels()))
@@ -54,7 +54,7 @@ for N in [20]:
         start = time.time()
         lda_model: LdaModel = models.ldamodel.LdaModel(corpus, id2word=id2word, num_topics=N,
                                                        chunksize=len(data_set.train_tokens()),
-                                                       alpha=alpha, eval_every=None, passes=125
+                                                       alpha=alpha, eval_every=None, passes=200
                                                        )
         end = time.time()
         print(f'Total time {end - start}')

@@ -3,15 +3,15 @@ from sklearn import svm
 
 from model.evaluation.retrival_metrics import RetrivalMetrics
 
-DATA_SET = '20news'
+DATA_SET = 'bbc'
 
 INPUT_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-OUTPUT_PATH = f'model-output-data/{DATA_SET}-pub'
+OUTPUT_PATH = f'model-output-data/{DATA_SET}-article-final'
 
-models = ['STM']
+models = ['lda']
 total_purity = []
-for N in [20,30,40]:
+for N in [20]:
     f_score = {m: [] for m in models}
     purity = {m: [] for m in models}
     for i in range(5):

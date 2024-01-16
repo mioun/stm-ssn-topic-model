@@ -20,7 +20,7 @@ ITER = 0
 TOPIC_NBR = 20
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
-MODEL_PATH = f'model-output-data/{DATA_SET}-article-time-comparison'
+MODEL_PATH = f'model-output-data/{DATA_SET}'
 
 data_set_name = f'{DATA_SET}_{FEATURE_LIMIT}'
 data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PATH).load_dataset()

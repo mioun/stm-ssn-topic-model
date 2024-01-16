@@ -47,12 +47,12 @@ class TopicMetrics(ABC):
                 metric_val = self.palmetto_request(metric, topic_words=topic.words)
                 topic.set_metric(metric, metric_val)
 
-    def save_results_csv(self, data_set, topic_number, model_name,output_path):
+    def save_results_csv(self, data_set, topic_number, model_name, output_path):
         results = []
         for metric in self.coherence_metrics:
             results.append([data_set, topic_number, model_name, metric,
-                           round(self.get_average_metric_for_top_n(metric), 3)])
-        results.append([data_set, topic_number, model_name,'PUW', round(self.calualte_uniqe(), 3)])
+                            round(self.get_average_metric_for_top_n(metric), 3)])
+        results.append([data_set, topic_number, model_name, 'PUW', round(self.calualte_uniqe(), 3)])
         coherence_results_csv = open(os.path.join(output_path, '_coherence-results.csv'), 'a+')
         writer = csv.writer(coherence_results_csv, dialect='unix')
         for line in results:

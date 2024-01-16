@@ -30,7 +30,7 @@ else:
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-MODEL_PATH = f'model-output-data/{DATA_SET}-pub'
+MODEL_PATH = f'model-output-data/{DATA_SET}'
 
 data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PATH).load_dataset()
 
