@@ -12,8 +12,8 @@ from model.datasets.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
 from model.preprocessing.dataset_interface import DatasetInterface
 from model.utils.key_value_action import KeyValueAction
-from topic.topic_metric_factory import TopicMetricsFactory
-from topic.topic_metrics import TopicMetrics
+from model.topic.topic_metric_factory import TopicMetricsFactory
+from model.topic.topic_metrics import TopicMetrics
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--params',
@@ -45,7 +45,7 @@ alpha = 'auto'
 time_file = open(f'time_report_lda_{DATA_SET}.csv', 'a+')
 writer = csv.writer(time_file)
 
-ENDPOINT_PALMETTO = 'http://localhost:7777/service/'
+ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
 
 for N in [20,30,40]:
     for i in range(8):
