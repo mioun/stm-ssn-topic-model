@@ -7,14 +7,14 @@ DATA_SET = 'bbc'
 
 INPUT_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-OUTPUT_PATH = f'model-output-data/{DATA_SET}-article-final'
+OUTPUT_PATH = f'model-output-data/{DATA_SET}'
 
 models = ['lda']
 total_purity = []
-for N in [20]:
+for N in [30]:
     f_score = {m: [] for m in models}
     purity = {m: [] for m in models}
-    for i in range(5):
+    for i in range(8):
         for m in models:
             model_name = f'{m}_{N}_{i}_clustering_metrics'
             M: RetrivalMetrics = RetrivalMetrics.load(OUTPUT_PATH, model_name)

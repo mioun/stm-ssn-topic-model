@@ -47,14 +47,14 @@ writer = csv.writer(time_file)
 
 ENDPOINT_PALMETTO = 'http://localhost:7777/service/'
 
-for N in [20]:
-    for i in range(5):
+for N in [20,30,40]:
+    for i in range(8):
         model_name = f'lda_{N}_{i}'
         print(f'Running : {i} for topic conf : {N} for alpha: {alpha} ')
         start = time.time()
         lda_model: LdaModel = models.ldamodel.LdaModel(corpus, id2word=id2word, num_topics=N,
                                                        chunksize=len(data_set.train_tokens()),
-                                                       alpha=alpha, eval_every=None, passes=200
+                                                       alpha=alpha, eval_every=None, passes=150
                                                        )
         end = time.time()
         print(f'Total time {end - start}')
