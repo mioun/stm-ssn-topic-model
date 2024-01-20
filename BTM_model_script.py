@@ -41,7 +41,9 @@ biterms = btm.get_biterms(docs_vec)
 time_file = open(f'time_report_btm_{DATA_SET}.csv', 'a+')
 writer = csv.writer(time_file)
 
-ENDPOINT_PALMETTO = 'http://localhost:7777/service/'
+ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
+
+
 for N in [20]:
     for i in range(5):
         model_name = f'btm_{N}_{i}'
@@ -77,6 +79,5 @@ for N in [20]:
         clustering_met.calculate_metrics()
 
         print("Purity BTM: ", clustering_met.purity)
-        print("Fscore BTM: ", clustering_met.classification_metrics.fscore)
 
         clustering_met.save(MODEL_PATH, f'{model_name}')
