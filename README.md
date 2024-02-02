@@ -41,6 +41,8 @@ Spiking neural network physical parameters and differential equations are in the
 
 STM, Latent Dirichlelt Allocation and Biterm models can be run from runner scripts e.g STM-model-script.py, LDA_model_script.py, BTM_model_script.py.
 
+The ETM experiments can be found in seperate repo https://github.com/mmarcinmichal/stm-ssn-topic-model-etm-part.
+
 All the scripts are run for the particular data set. In the first step script checks if the dataset was preprocessed before. The preprocessed dataset is located in the `\model-input-data folder`. Suppose the dataset is processed for the first time; in such case, the script will load data from the `\data` folder, preprocess the dataset, and save it in the `\model-input-data` folder. Custom datasets can be added to `\data` folder. To use them, a new data set loader needs to be implemented. Please check the `\model\datasets` source code for more information.
 
 When the preprocessing is completed, the script will train the model base on the data from `\model-input-data`. The model after training will be saved in the `\model-output-data`. 
@@ -59,3 +61,4 @@ There is also `TOPIC_eval.py` script which can be used to evaluate topics.
 ## Purity and Information Retrival evaluation
 
 Analogically cluster purity and information retrieval is performed. `IR_PURITY_eval.py` script loads the topic-based representation of the dataset from the  `\model-output-folder` for each model than purity and fscore are calculated. After that, the script saves the result in the `\model-output-folder`.
+

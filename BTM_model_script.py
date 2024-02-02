@@ -41,6 +41,8 @@ biterms = btm.get_biterms(docs_vec)
 time_file = open(f'time_report_btm_{DATA_SET}.csv', 'a+')
 writer = csv.writer(time_file)
 
+# it is recommended to use local Palemtto service please follow the instruction on
+# https://github.com/dice-group/Palmetto/wiki/How-Palmetto-can-be-used
 ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
 
 

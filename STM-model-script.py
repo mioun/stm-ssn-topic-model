@@ -53,7 +53,9 @@ for doc in data:
 print(len(data))
 print(np.median(doc_lenght))
 
-ENDPOINT_PALMETTO = 'http://localhost:7777/service/'
+# it is recommended to use local Palemtto service please follow the instruction on
+# https://github.com/dice-group/Palmetto/wiki/How-Palmetto-can-be-used
+ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
 
 for N in [20, 30, 40]:
     for i in range(5):
@@ -73,11 +75,15 @@ for N in [20, 30, 40]:
                                eta=eta[DATA_SET])
         train_tmp = []
 
+        # training is faster in batches in such case, training can be done by adding several times data set to the batch
+        # here the data set is added 15 times to batch == 15 training epoch
+
         for i in range(15):
             train_tmp.extend(data_set.train_tokens())
         start_time = time.time()
 
-        model.train(1, train_tmp)
+        TRAINING_EPOCHS = 1
+        model.train(TRAINING_EPOCHS, train_tmp)
 
         total_time = time.time() - start_time
         writer.writerow([model_name, total_time, DATA_SET])

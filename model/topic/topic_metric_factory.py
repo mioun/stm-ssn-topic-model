@@ -1,4 +1,3 @@
-from model.topic.bert_topic_metrics import BertTopicMetrics
 from model.topic.btm_topic_metrics import BTMTopicMetrics
 from model.topic.lda_topic_metrics import LdaTopicMetrics
 from model.topic.stm_topic_metrics import STMTopicMetrics
