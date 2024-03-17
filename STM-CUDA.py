@@ -119,7 +119,7 @@ if __name__ == '__main__':
                                       batch_size=Batch_Size,
                                       epochs=1,
                                       alpha=alpha[DATA_SET])
-    # loader.generate_batches()
+    loader.generate_batches()
 
     stmModel = STMGPUrunner(FEATURE_LIMIT,
                             neuron_nbr=neuron_nbr,
