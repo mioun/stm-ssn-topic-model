@@ -4,13 +4,9 @@ import math
 import os
 from math import exp
 import random
-from time import sleep
 from gensim.corpora.dictionary import Dictionary
 import torch
-import torch.nn as nn
 from sklearn.preprocessing import normalize
-from torch import Tensor
-from torch.utils.data import TensorDataset, DataLoader
 from tqdm import tqdm
 
 import snntorch as snn
@@ -19,14 +15,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cuda_data_set import CUDADataset
-from datasets.dataset_loader import DatasetLoader
-from evaluation.retrival_metrics import RetrivalMetrics
-from gpu import stdp_learner
-from gpu.stm_gpu_runner import STMGPUrunner
-from preprocessing.dataset_interface import DatasetInterface
-from topic.topic_metric_factory import TopicMetricsFactory
-from topic.topic_metrics import TopicMetrics
-from utils.key_value_action import KeyValueAction
+from model.datasets.dataset_loader import DatasetLoader
+from model.evaluation.retrival_metrics import RetrivalMetrics
+from model.gpu.stm_gpu_runner import STMGPUrunner
+from model.preprocessing.dataset_interface import DatasetInterface
+from model.topic.topic_metric_factory import TopicMetricsFactory
+from model.topic.topic_metrics import TopicMetrics
+from model.utils.key_value_action import KeyValueAction
 
 from gensim.models.coherencemodel import CoherenceModel
 

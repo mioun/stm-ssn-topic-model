@@ -7,7 +7,7 @@ import snntorch as snn
 from tqdm import tqdm
 
 from cuda_data_set import CUDADataset
-from gpu import stdp_learner
+from model.gpu import stdp_learner
 
 
 class STMGPUrunner(ABC):

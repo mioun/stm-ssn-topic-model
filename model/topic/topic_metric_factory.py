@@ -3,8 +3,8 @@ from model.topic.btm_topic_metrics import BTMTopicMetrics
 from model.topic.lda_topic_metrics import LdaTopicMetrics
 from model.topic.stm_topic_metrics import STMTopicMetrics
 from model.topic.topic_metrics import TopicMetrics
-from topic.ctm_topic_metrics import CTMTopicMetrics
-from topic.stm_cuda_topic_metrics import STMCudaTopicMetrics
+from model.topic.ctm_topic_metrics import CTMTopicMetrics
+from model.topic.stm_cuda_topic_metrics import STMCudaTopicMetrics
 
 
 class TopicMetricsFactory:

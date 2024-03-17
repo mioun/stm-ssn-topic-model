@@ -1,7 +1,7 @@
 from typing import List
 
-from topic.topic_metrics import TopicMetrics
-from topic.topic_object import TopicObject
+from model.topic.topic_metrics import TopicMetrics
+from model.topic.topic_object import TopicObject
 
 
 class STMCudaTopicMetrics(TopicMetrics):

@@ -5,7 +5,7 @@ from math import exp
 
 import torch
 
-from preprocessing.dataset_interface import DatasetInterface
+from model.preprocessing.dataset_interface import DatasetInterface
 
 
 class CUDADataset(ABC):
