@@ -7,6 +7,9 @@ from model.datasets.loaders.news_loader import NewsDataLoader
 from model.preprocessing.data_set_clustering import DataSetFullImpl
 from model.preprocessing.dataset_interface import DatasetInterface
 
+import nltk
+nltk.download('punkt')
+
 
 class DatasetLoader:
 
