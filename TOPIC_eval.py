@@ -26,6 +26,12 @@ def get_model(_model_name):
         btm_model_file = os.path.join(OUTPUT_PATH, _model_name)
         with open(btm_model_file, "rb") as file:
             return pkl.load(file)
+
+    if m == 'BERT':
+        btm_model_file = os.path.join(OUTPUT_PATH, _model_name)
+        with open(btm_model_file, "rb") as file:
+            return pkl.load(file)
+
 def calualte_uniqe(topics):
     uniq = set()
     for t in topics:
@@ -39,25 +45,25 @@ DATA_SET = '20news'
 
 INPUT_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-OUTPUT_PATH = f'model-output-data/{DATA_SET}-pub'
-models = ['STM']
-coherence_results_csv = open(os.path.join(OUTPUT_PATH, '_coherence-results.csv'), 'w+')
+OUTPUT_PATH = f'model-output-data/20news-article-bert-full'
+models = ['BERT-TOPIC']
+coherence_results_csv = open(os.path.join(OUTPUT_PATH, '_coherence-results.csv'), 'a+')
 writer = csv.writer(coherence_results_csv, dialect='unix')
 header = ['DS', 'N', 'model', 'TopN', 'metric', 'metric_val']
 writer.writerow(header)
 N = 20
-DATA_SET_PATH = f'model-input-data/{DATA_SET}'
+DATA_SET_PATH = f'model-input-data/ag-article-bert-full'
 # data_set: DatasetInterface = DatasetLoader(DATA_SET, 5000, DATA_SET_PATH).load_dataset()
 
 for m in models:
-    for N in [20, 30, 40]:
+    for N in [20,30,40]:
         for k in range(5):
             model_name = f'{m}_{N}_{k}'
             print(model_name)
-            while not os.path.exists(f'{OUTPUT_PATH}/{model_name}'):
-                print("waiting")
-                time.sleep(180)
-            model = get_model(model_name)
+            # while not os.path.exists(f'{OUTPUT_PATH}/{model_name}'):
+            #     print("waiting")
+            #     time.sleep(180)
+            # model = get_model(model_name)
             metrics_file_name = f'{model_name}_topic_metrics'
             if os.path.exists(os.path.join(OUTPUT_PATH, metrics_file_name)):
                 metrics: TopicMetrics = TopicMetrics.load(OUTPUT_PATH, f'{model_name}_topic_metrics')

@@ -25,18 +25,18 @@ if params:
     DATA_SET = params['data_set']
     FEATURE_LIMIT = int(params['features_limit'])
 else:
-    DATA_SET = 'ag'
-    FEATURE_LIMIT = 5000
+    DATA_SET = '20news'
+    FEATURE_LIMIT = 20_000
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-MODEL_PATH = f'model-output-data/{DATA_SET}-cuda'
+MODEL_PATH = f'model-output-data/{DATA_SET}-embeding'
 
 data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PATH).load_dataset()
 
 # hyperparameters for data sets
 
-alpha = {'bbc': -0.003, '20news': -0.0003, 'ag': -0.0004}
+alpha = {'bbc': -0.001, '20news': -0.0003, 'ag': -0.0004}
 
 tau_scaling = {'bbc': 50, '20news': 75, 'ag': 75}
 eta = {'bbc': 0.0006, '20news': 0.0003, 'ag': 0.0003}
@@ -57,8 +57,8 @@ print(np.median(doc_lenght))
 # https://github.com/dice-group/Palmetto/wiki/How-Palmetto-can-be-used
 ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
 
-for N in [40]:
-    for i in range(5):
+for N in [50]:
+    for i in range(1):
         model_name = f'STM_{N}_{i}'
 
         model = STMModelRunner(feature_limit=FEATURE_LIMIT,
@@ -78,7 +78,7 @@ for N in [40]:
         # training is faster in batches in such case, training can be done by adding several times data set to the batch
         # here the data set is added 15 times to batch == 15 training epoch
 
-        for i in range(15):
+        for i in range(10):
             train_tmp.extend(data_set.train_tokens())
         start_time = time.time()
 
@@ -108,4 +108,15 @@ for N in [40]:
         print("Purity STM: ", clustering_met.purity)
         clustering_met.save(MODEL_PATH, model_name)
 
+        # Dense embeding
 
+        features = data_set.features()
+        features_ds = [[f] * 150 for f in features]
+        features_frq_map = {f: 1 for f in features}
+        model = STMModelRunner.load(MODEL_PATH, model_name)
+        doc_embedding = model.represent_norm(data_set.train_tokens(), 1)
+        model.freq_map = features_frq_map
+        word_embedding = model.represent_norm(features_ds, 1)
+
+        np.save(f'{MODEL_PATH}/word_embedding.npy', word_embedding)
+        np.save(f'{MODEL_PATH}/doc_embedding.npy', doc_embedding)

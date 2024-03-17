@@ -7,6 +7,7 @@ from model.datasets.loaders.news_loader import NewsDataLoader
 from model.preprocessing.data_set_clustering import DataSetFullImpl
 from model.preprocessing.dataset_interface import DatasetInterface
 
+
 class DatasetLoader:
 
     def __init__(self, name: str, features_limit: int, folder: str):
