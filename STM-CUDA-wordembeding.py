@@ -169,7 +169,7 @@ if __name__ == '__main__':
     clsf.calculate_results()
     print(clsf.to_fancy_string())
 
-    rep = stmModel.encode_docs_dense_mini_batch(loader, 50, [['star']]).cpu().numpy()
+    rep = stmModel.encode_docs_dense_mini_batch(loader, 50, [['play','console']]).cpu().numpy()
     max_topic = np.argmax(rep)
     print(rep)
     print(np.argmax(rep), topics[max_topic])
