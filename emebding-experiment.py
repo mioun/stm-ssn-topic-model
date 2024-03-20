@@ -4,7 +4,7 @@ import os
 import numpy as np
 from bertopic import BERTopic
 
-from datasets.dataset_loader import DatasetLoader
+from ds.dataset_loader import DatasetLoader
 from preprocessing.dataset_interface import DatasetInterface
 from topic.topic_metric_factory import TopicMetricsFactory
 from topic.topic_metrics import TopicMetrics
@@ -21,8 +21,8 @@ if params:
     DATA_SET = params['data_set']
     FEATURE_LIMIT = int(params['features_limit'])
 else:
-    DATA_SET = '20news'
-    FEATURE_LIMIT = 20000
+    DATA_SET = 'bbc'
+    FEATURE_LIMIT = 2000
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'

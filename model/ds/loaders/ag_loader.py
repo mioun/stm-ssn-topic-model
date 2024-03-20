@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 
-from model.datasets.loaders.base_data_loader import BaseDataLoader
+from model.ds.loaders.base_data_loader import BaseDataLoader
 
 
 class AGLoader(BaseDataLoader):
@@ -40,13 +40,13 @@ class AGLoader(BaseDataLoader):
         return texts, labels
 
 
-loader = AGLoader()
-test_t, test_l = loader.gat_test_set()
-train_t, train_l = loader.gat_training_set()
-print(len(train_t))
-print(len(test_t))
-print(len(test_t) + len(train_t))
-print(len(train_l))
-print(len(test_l))
-print(len(test_l) + len(train_l))
-print(test_t[0])
+# loader = AGLoader()
+# test_t, test_l = loader.gat_test_set()
+# train_t, train_l = loader.gat_training_set()
+# print(len(train_t))
+# print(len(test_t))
+# print(len(test_t) + len(train_t))
+# print(len(train_l))
+# print(len(test_l))
+# print(len(test_l) + len(train_l))
+# print(test_t[0])

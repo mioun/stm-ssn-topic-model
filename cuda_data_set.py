@@ -44,6 +44,13 @@ class CUDADataset(ABC):
             batch_tensors = torch.stack([self.do_to_sparse_tensor(doc) for doc in batch_docs])
             torch.save(batch_tensors, self.get_batch_path(batch_id))
 
+    def generate_small_batch(self, docs):
+        documents = self.token_freqencies(docs,
+                                          self.data_set.features(),
+                                          self.data_set.frequency_map(),
+                                          self.alpha)
+        return torch.stack([self.do_to_sparse_tensor(doc) for doc in documents])
+
     def load_batch(self, batch_id) -> torch.sparse:
         batch_path = self.get_batch_path(batch_id)
 

@@ -1,3 +1,5 @@
+import os
+import pickle
 from abc import ABC
 
 import numpy as np
@@ -19,20 +21,32 @@ class STMGPUrunner(ABC):
                  beta=0.8,
                  threshold: float = 0.1,
                  learning_rate: float = 0.0001,
-                 device="cuda"
+                 device="cuda",
+                 squuze=3,
+                 weights_data=None
                  ):
 
+        self.squuze = squuze
         self.learning_rate = learning_rate
         self.device = device
+        self.beta = beta
+        self.threshold = threshold
         self.w_min = 0
         self.w_max = 10
         self.neuron_nbr = neuron_nbr
         self.input_size = input_size
+        self.tau_pre = tau_pre
+        self.tau_post = tau_post
+
         self.net = nn.Sequential(
             nn.Linear(input_size, neuron_nbr),
             snn.Leaky(beta=beta, init_hidden=True, inhibition=True, threshold=threshold)
         )
-        nn.init.uniform_(self.net[0].weight.data, 0, 1)
+        if weights_data is not None:
+            torch_weights = torch.from_numpy(weights_data).float()
+            self.net[0].weight = nn.Parameter(torch_weights)
+        else:
+            nn.init.uniform_(self.net[0].weight.data, 0, 1)
         self.net.to(self.device)
         self.sdp_learner = stdp_learner.STDPLearner2(synapse=self.net[0], sn=self.net[1],
                                                      tau_pre=tau_pre, tau_post=tau_post,
@@ -45,7 +59,7 @@ class STMGPUrunner(ABC):
         for _ in tqdm(range(epoch_nbr)):
             for batch_idx in range(loader.number_of_batches):
                 batch = loader.load_batch(batch_idx).to_dense()
-                batch = batch.reshape(loader.batch_size, steps, 3, self.input_size)
+                batch = batch.reshape(loader.batch_size, steps, self.squuze, self.input_size)
                 print(batch.shape)
                 batch = torch.clamp(batch.sum(dim=2), 0, 1)
                 batch_in = batch.transpose(0, 1)
@@ -56,7 +70,7 @@ class STMGPUrunner(ABC):
         self.sdp_learner.disable()
         for batch_idx in range(loader.number_of_batches):
             batch = loader.load_batch(batch_idx).to_dense()
-            batch = batch.reshape(loader.batch_size, steps, 3, self.input_size)
+            batch = batch.reshape(loader.batch_size, steps, self.squuze, self.input_size)
             batch = torch.clamp(batch.sum(dim=2), 0, 1)
             batch_in = batch.transpose(0, 1)
             encoding.append(self.encode_batch(batch_in, steps))
@@ -80,7 +94,38 @@ class STMGPUrunner(ABC):
                 batch_res.append(self.net(batch_t).cpu())
             return torch.stack(batch_res).sum(0)
 
+    def encode_docs_dense(self, loader: CUDADataset, steps):
+        weights = self.net[0].weight.data.cpu()
+        self.net = nn.Sequential(
+            nn.Linear(self.input_size, self.neuron_nbr),
+            snn.Leaky(beta=0.2, init_hidden=True, inhibition=False, threshold=0.5)
+        )
+        print(weights)
+        self.net[0].weight.data = weights
+        print(self.net[0].weight.data.shape)
+        self.net.to(self.device)
+        return self.encode_docs(loader, steps)
+
+    def encode_docs_dense_mini_batch(self, loader: CUDADataset, steps, docs):
+        weights = self.net[0].weight.data.cpu()
+        self.net = nn.Sequential(
+            nn.Linear(self.input_size, self.neuron_nbr),
+            snn.Leaky(beta=0.6, init_hidden=True, inhibition=True, threshold=0.5)
+        )
+        print(weights)
+        self.net[0].weight.data = weights
+        print(self.net[0].weight.data.shape)
+        self.net.to(self.device)
+
+        small_batch = loader.generate_small_batch(docs).to_dense()
+        print(small_batch)
+        small_batch = small_batch.reshape(len(docs), steps, self.squuze, self.input_size)
+        small_batch = torch.clamp(small_batch.sum(dim=2), 0, 1)
+        batch_in = small_batch.transpose(0, 1)
+        return self.encode_batch(batch_in, steps)
+
     def topics(self, features) -> list:
+
         topics = []
         for i in range(self.neuron_nbr):
             w_after_training = self.net[0].weight.data.cpu().numpy()[i]
@@ -89,6 +134,46 @@ class STMGPUrunner(ABC):
             print(top20)
             topics.append([word for word, weight in top20])
         return topics
+
+    def save(self, result_folder: str, name: str):
+        if not os.path.exists(result_folder):
+            os.makedirs(result_folder)
+        results_path = os.path.join(result_folder, name)
+        attributes_dict = self.to_dict(
+            ['learning_rate',
+             'device',
+             'beta',
+             'threshold',
+             'w_min',
+             'w_max',
+             'tau_post',
+             'tau_pre',
+             'neuron_nbr',
+             'input_size'])
+        attributes_dict['weights'] = self.net[0].weight.data.cpu().numpy()
+
+        with open(results_path, 'wb') as outp:
+            pickle.dump(attributes_dict, outp, pickle.HIGHEST_PROTOCOL)
+
+    def to_dict(self, attribute_names):
+        # Create a dictionary from the list of attribute names and their values in self
+        return {attr: getattr(self, attr) for attr in attribute_names}
+
+    @staticmethod
+    def load(folder, model_name):
+        path = os.path.join(folder, model_name)
+        network_dict: dict = pickle.load(open(path, "rb"))
+        return STMGPUrunner(input_size=network_dict['input_size'],
+                            neuron_nbr=network_dict['neuron_nbr'],
+                            tau_pre=network_dict['tau_pre'],
+                            tau_post=network_dict['tau_post'],
+                            beta=network_dict['beta'],
+                            threshold=network_dict['threshold'],
+                            learning_rate=network_dict['learning_rate'],
+                            device="cuda",
+                            squuze=3,
+                            weights_data=network_dict['weights']
+                            )
 
     @staticmethod
     def post_norm(x):

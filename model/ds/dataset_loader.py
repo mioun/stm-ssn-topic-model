@@ -1,9 +1,9 @@
 import os
 
-from model.datasets.loaders.ag_loader import AGLoader
-from model.datasets.loaders.base_data_loader import BaseDataLoader
-from model.datasets.loaders.bbc_loader import BBCLoader
-from model.datasets.loaders.news_loader import NewsDataLoader
+from model.ds.loaders.ag_loader import AGLoader
+from model.ds.loaders.base_data_loader import BaseDataLoader
+from model.ds.loaders.bbc_loader import BBCLoader
+from model.ds.loaders.news_loader import NewsDataLoader
 from model.preprocessing.data_set_clustering import DataSetFullImpl
 from model.preprocessing.dataset_interface import DatasetInterface
 

@@ -10,8 +10,8 @@ from contextualized_topic_models.utils.data_preparation import TopicModelDataPre
 from contextualized_topic_models.utils.data_preparation import bert_embeddings_from_file
 from sklearn.datasets import fetch_20newsgroups
 
-from datasets.dataset_loader import DatasetLoader
-from datasets.loaders.bbc_loader import BBCLoader
+from ds.dataset_loader import DatasetLoader
+from ds.loaders.bbc_loader import BBCLoader
 from preprocessing.dataset_interface import DatasetInterface
 from topic.topic_metric_factory import TopicMetricsFactory
 from topic.topic_metrics import TopicMetrics

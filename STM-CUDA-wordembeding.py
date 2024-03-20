@@ -80,11 +80,11 @@ if params:
     FEATURE_LIMIT = int(params['features_limit'])
 else:
     DATA_SET = 'bbc'
-    FEATURE_LIMIT = 10000
+    FEATURE_LIMIT = 2000
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-MODEL_PATH = f'model-output-data/{DATA_SET}-ssntorch'
+MODEL_PATH = f'model-output-data/{DATA_SET}-ssntorch-embd'
 
 if not os.path.exists(MODEL_PATH):
     os.makedirs(MODEL_PATH)
@@ -93,7 +93,7 @@ data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PAT
 
 # hyperparameters for data sets
 
-alpha = {'bbc': -0, '20news': -0.0004, 'ag': -0.0004}
+alpha = {'bbc': 0, '20news': -0.0004, 'ag': -0.0004}
 
 tau_scaling = {'bbc': 50, '20news': 75, 'ag': 75}
 eta = {'bbc': 0.0006, '20news': 0.0003, 'ag': 0.0003}
@@ -112,8 +112,8 @@ torch.manual_seed(0)
 if __name__ == '__main__':
 
     DATA_SET_PATH = f'{MODEL_PATH}/data_tensor_{epoch}.pt'
-    Batch_Size = 445
-    neuron_nbr = 50
+    Batch_Size = 2225
+    neuron_nbr = 60
     loader: CUDADataset = CUDADataset(data_path=MODEL_PATH,
                                       data_set=data_set,
                                       data_set_name=DATA_SET,
@@ -122,22 +122,20 @@ if __name__ == '__main__':
                                       epochs=1,
                                       alpha=alpha[DATA_SET])
     loader.generate_batches()
-
-    stmModel = STMGPUrunner(FEATURE_LIMIT,
-                            neuron_nbr=neuron_nbr,
-                            tau_pre=15,
-                            tau_post=15,
-                            beta=0.8,
-                            threshold=0.1,
-                            learning_rate=0.001)
-
-    stmModel.train(loader, 20, 50)
-
     model_name = f'STM_CUDA_{neuron_nbr}'
-    stmModel.save(MODEL_PATH, model_name)
+    training = False
+    if training:
+        stmModel = STMGPUrunner(FEATURE_LIMIT,
+                                neuron_nbr=neuron_nbr,
+                                tau_pre=15,
+                                tau_post=15,
+                                beta=0.8,
+                                threshold=0.1,
+                                learning_rate=0.001)
 
+        stmModel.train(loader, 20, 50)
 
-
+        stmModel.save(MODEL_PATH, model_name)
 
     stmModel = STMGPUrunner.load(MODEL_PATH, model_name)
 
@@ -160,17 +158,21 @@ if __name__ == '__main__':
         print(r)
     probs_norm = normalize(rep)
     print(probs_norm)
-    step = 1500
     samples = int(loader.number_of_batches * loader.batch_size)
-    train = probs_norm[:11000]
-    test = probs_norm[11000:samples]
+    train = probs_norm
+    test = probs_norm
 
-    clf = LogisticRegression(random_state=0).fit(train, data_set.train_labels()[:11000])
+    clf = LogisticRegression(random_state=0).fit(train, data_set.train_labels())
     pred = clf.predict(test)
 
-    clsf = ClassificationMetrics(data_set.train_labels()[11000:samples], pred, data_set.categories())
+    clsf = ClassificationMetrics(pred, data_set.train_labels(), data_set.categories())
     clsf.calculate_results()
     print(clsf.to_fancy_string())
+
+    rep = stmModel.encode_docs_dense_mini_batch(loader, 50, [['star']]).cpu().numpy()
+    max_topic = np.argmax(rep)
+    print(rep)
+    print(np.argmax(rep), topics[max_topic])
 
     # clustering_met: RetrivalMetrics = RetrivalMetrics("cuda-stm", neuron_nbr, probs_norm, probs_norm,
     #                                                   data_set.train_labels()[:samples],

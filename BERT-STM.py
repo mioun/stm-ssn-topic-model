@@ -7,7 +7,7 @@ from random import random
 import numpy as np
 from bertopic import BERTopic
 
-from model.datasets.dataset_loader import DatasetLoader
+from model.ds.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
 from model.network.stm_model_runner import STMModelRunner
 from model.preprocessing.dataset_interface import DatasetInterface

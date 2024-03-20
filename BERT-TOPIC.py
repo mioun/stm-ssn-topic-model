@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 from sklearn.datasets import fetch_20newsgroups
 
 from evaluation.retrival_metrics import RetrivalMetrics
-from model.datasets.dataset_loader import DatasetLoader
+from model.ds.dataset_loader import DatasetLoader
 from model.preprocessing.dataset_interface import DatasetInterface
 from model.utils.key_value_action import KeyValueAction
 from topic.topic_metric_factory import TopicMetricsFactory
