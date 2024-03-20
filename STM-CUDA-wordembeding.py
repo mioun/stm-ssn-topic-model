@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cuda_data_set import CUDADataset
-from evaluation.classification_metrics import ClassificationMetrics
+from model.evaluation.classification_metrics import ClassificationMetrics
 from model.ds.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
 from model.gpu.stm_gpu_runner import STMGPUrunner
