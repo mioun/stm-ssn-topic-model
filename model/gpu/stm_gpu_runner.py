@@ -1,5 +1,6 @@
 import os
 import pickle
+import random
 from abc import ABC
 
 import numpy as np
@@ -98,7 +99,7 @@ class STMGPUrunner(ABC):
         weights = self.net[0].weight.data.cpu()
         self.net = nn.Sequential(
             nn.Linear(self.input_size, self.neuron_nbr),
-            snn.Leaky(beta=0.2, init_hidden=True, inhibition=False, threshold=0.5)
+            snn.Leaky(beta=0.8, init_hidden=True, inhibition=True, threshold=0.1)
         )
         print(weights)
         self.net[0].weight.data = weights
@@ -110,7 +111,7 @@ class STMGPUrunner(ABC):
         weights = self.net[0].weight.data.cpu()
         self.net = nn.Sequential(
             nn.Linear(self.input_size, self.neuron_nbr),
-            snn.Leaky(beta=0.6, init_hidden=True, inhibition=True, threshold=0.5)
+            snn.Leaky(beta=0.8, init_hidden=True, inhibition=True, threshold=0.1)
         )
         print(weights)
         self.net[0].weight.data = weights
@@ -124,12 +125,12 @@ class STMGPUrunner(ABC):
         batch_in = small_batch.transpose(0, 1)
         return self.encode_batch(batch_in, steps)
 
-    def topics(self, features) -> list:
+    def topics(self, features, top=10) -> list:
 
         topics = []
         for i in range(self.neuron_nbr):
             w_after_training = self.net[0].weight.data.cpu().numpy()[i]
-            top20 = [(features[idx], w_after_training[idx]) for idx in np.argsort(w_after_training)[-10:]]
+            top20 = [(features[idx], w_after_training[idx]) for idx in np.argsort(w_after_training)[-top:]]
             top20 = sorted(top20, key=lambda x: x[1], reverse=True)
             print(top20)
             topics.append([word for word, weight in top20])

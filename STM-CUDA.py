@@ -136,13 +136,9 @@ if __name__ == '__main__':
     model_name = f'STM_CUDA_{neuron_nbr}'
     stmModel.save(MODEL_PATH, model_name)
 
-
-
-
     stmModel = STMGPUrunner.load(MODEL_PATH, model_name)
 
-    topics = stmModel.topics(data_set.features())
-    print(topics)
+    topics = stmModel.topics(data_set.features(), 10)
     word2id = Dictionary(data_set.train_tokens())
     cm = CoherenceModel(topics=topics,
                         texts=data_set.train_tokens(),
@@ -172,28 +168,28 @@ if __name__ == '__main__':
     clsf.calculate_results()
     print(clsf.to_fancy_string())
 
-    # clustering_met: RetrivalMetrics = RetrivalMetrics("cuda-stm", neuron_nbr, probs_norm, probs_norm,
-    #                                                   data_set.train_labels()[:samples],
-    #                                                   data_set.train_labels()[:samples],
-    #                                                   data_set.categories())
-    # clustering_met.calculate_metrics()
+    clustering_met: RetrivalMetrics = RetrivalMetrics("cuda-stm", neuron_nbr, probs_norm, probs_norm,
+                                                      data_set.train_labels()[:samples],
+                                                      data_set.train_labels()[:samples],
+                                                      data_set.categories())
+    clustering_met.calculate_metrics()
+
+    print("Purity BERT: ", clustering_met.purity)
     #
-    # print("Purity BERT: ", clustering_met.purity)
-    # #
-    # clustering_met.save(MODEL_PATH, f'cuda-stm')
-    #
-    # metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM-CUDA',
-    #                                                        neuron_nbr,
-    #                                                        topics,
-    #
-    #                                                        ENDPOINT_PALMETTO)
-    # metrics.generate_metrics()
-    #
-    # if not os.path.exists(MODEL_PATH):
-    #     os.makedirs(MODEL_PATH)
-    #
-    # metrics.save(MODEL_PATH, f'_topic_metrics')
-    #
-    # metrics.save_results_csv(DATA_SET, neuron_nbr, "stm-cuda", MODEL_PATH)
+    clustering_met.save(MODEL_PATH, f'cuda-stm')
+
+    metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM-CUDA',
+                                                           neuron_nbr,
+                                                           topics,
+
+                                                           ENDPOINT_PALMETTO)
+    metrics.generate_metrics()
+
+    if not os.path.exists(MODEL_PATH):
+        os.makedirs(MODEL_PATH)
+
+    metrics.save(MODEL_PATH, f'_topic_metrics')
+
+    metrics.save_results_csv(DATA_SET, neuron_nbr, "stm-cuda", MODEL_PATH)
     # #
     # # #################################Purity#############################################################################

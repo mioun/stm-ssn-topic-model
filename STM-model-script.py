@@ -13,6 +13,7 @@ from model.topic.topic_metric_factory import TopicMetricsFactory
 from model.topic.topic_metrics import TopicMetrics
 
 from model.utils.key_value_action import KeyValueAction
+from sklearn.metrics import silhouette_score
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--params',
@@ -25,12 +26,12 @@ if params:
     DATA_SET = params['data_set']
     FEATURE_LIMIT = int(params['features_limit'])
 else:
-    DATA_SET = 'ag'
+    DATA_SET = '20news'
     FEATURE_LIMIT = 5000
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-MODEL_PATH = f'model-output-data/{DATA_SET}-cuda'
+MODEL_PATH = f'model-output-data/{DATA_SET}-marcin'
 
 data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PATH).load_dataset()
 
@@ -71,18 +72,18 @@ for N in [40]:
                                alpha=alpha[DATA_SET],
                                learning_window=learning_window[DATA_SET],
                                tau_scaling=tau_scaling[DATA_SET],
-                               minimum_spikes=150,
+                               minimum_spikes=30*(i+1),
                                eta=eta[DATA_SET])
         train_tmp = []
 
         # training is faster in batches in such case, training can be done by adding several times data set to the batch
         # here the data set is added 15 times to batch == 15 training epoch
 
-        for i in range(15):
+        for i in range(3):
             train_tmp.extend(data_set.train_tokens())
         start_time = time.time()
 
-        TRAINING_EPOCHS = 1
+        TRAINING_EPOCHS = 3
         model.train(TRAINING_EPOCHS, train_tmp)
 
         total_time = time.time() - start_time
@@ -90,6 +91,7 @@ for N in [40]:
         time_file.flush()
         model.save(MODEL_PATH, model_name)
 
+        model = STMModelRunner.load(MODEL_PATH, model_name)
         # Coherence Evaluation
 
         metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM', N, model, ENDPOINT_PALMETTO)
@@ -97,15 +99,26 @@ for N in [40]:
         metrics.save(MODEL_PATH, f'{model_name}_topic_metrics')
         metrics.save_results_csv(DATA_SET, N, 'STM', MODEL_PATH)
 
-        # Purity Evaluation
+        met: TopicMetrics = TopicMetrics.load(MODEL_PATH, f'{model_name}_topic_metrics')
 
-        model = STMModelRunner.load(MODEL_PATH, model_name)
-        train_represent = model.represent_norm(data_set.train_tokens())
+        for t in met.topics:
+            print(f'{t.metrics["npmi"]}, {t.metrics["ca"]}, {t.words}')
+
+        # Purity Evaluation
+        with open(f'{MODEL_PATH}\{model_name}_rep.npy', 'wb') as f:
+            train_represent = model.represent_norm(data_set.train_tokens())
+            np.save(f, train_represent)
+        with open(f'{MODEL_PATH}\{model_name}_rep_dense.npy', 'wb') as f:
+            model = STMModelRunner.load(MODEL_PATH, model_name)
+            train_represent = model.represent_norm(data_set.train_tokens(), 1)
+            np.save(f, train_represent)
+        with open(f'{MODEL_PATH}\{model_name}_rep.npy', 'rb') as f:
+            train_represent = np.load(f)
+
         clustering_met: RetrivalMetrics = RetrivalMetrics(model_name, N, train_represent, train_represent,
                                                           data_set.train_labels(), data_set.train_labels(),
                                                           data_set.categories())
         clustering_met.calculate_metrics()
+        print(clustering_met.calculate_silhouette_score(data_set.train_tokens()))
         print("Purity STM: ", clustering_met.purity)
         clustering_met.save(MODEL_PATH, model_name)
-
-

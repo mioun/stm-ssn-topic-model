@@ -173,7 +173,7 @@ class STMModelRunner:
         freq_threshold = threshold * doc_nbr
         return exp(self.alpha * feature_freq)
 
-    @staticmethod
+
     def to_token_freq_dict(self, tokenize_docs: list, features_list: list, frequency_map: dict,
                            total_doc_nbr: int) -> dict:
         documents_dict = {}

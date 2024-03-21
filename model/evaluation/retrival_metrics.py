@@ -1,8 +1,9 @@
 import os
 import pickle
 
-
 import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.metrics import silhouette_score
 
 from model.evaluation.classification_metrics import ClassificationMetrics
 
@@ -22,6 +23,7 @@ class RetrivalMetrics:
         self.classification_metrics: ClassificationMetrics = None
         self.purity = None
         self.purity = 0
+        self.silhouette_score = 0
 
     def calculate_metrics(self):
         predicated_labels, test_labels = self.process_data()
@@ -30,7 +32,7 @@ class RetrivalMetrics:
 
     def process_data(self):
         self.claculate_purity()
-    #    test_labels, train_labels = self.retive_docs()
+        #    test_labels, train_labels = self.retive_docs()
         return [1], [1]
 
     def retive_docs(self):
@@ -62,6 +64,13 @@ class RetrivalMetrics:
             cluster_label_assignment[max_prob_top][label] += 1
         max_doc_cluster = np.sum([p for p in np.max(cluster_label_assignment, axis=1)])
         self.purity = max_doc_cluster / len(self.test_labels)
+
+    def calculate_silhouette_score(self, docs):
+        labels = np.argmax(self.test_topic_probability, axis=1)
+        vectorizer = TfidfVectorizer()
+        X = vectorizer.fit_transform([" ".join(doc) for doc in docs])
+        print(X.toarray().shape)
+        return silhouette_score(self.train_topic_probability, labels, metric='cosine')
 
     def save(self, result_folder, model_name):
         results_path = os.path.join(result_folder, f'{model_name}_clustering_metrics')

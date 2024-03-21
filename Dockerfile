@@ -7,6 +7,7 @@ ENV PYTHONIOENCODING=utf-8
 ADD requirements.txt .
 
 RUN pip install -U pip
+RUN pip install -r requirements.txt
 
 
 

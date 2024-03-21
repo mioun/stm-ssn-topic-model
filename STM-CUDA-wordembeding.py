@@ -79,8 +79,8 @@ if params:
     DATA_SET = params['data_set']
     FEATURE_LIMIT = int(params['features_limit'])
 else:
-    DATA_SET = 'bbc'
-    FEATURE_LIMIT = 2000
+    DATA_SET = 'ag'
+    FEATURE_LIMIT = 5000
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
@@ -112,8 +112,8 @@ torch.manual_seed(0)
 if __name__ == '__main__':
 
     DATA_SET_PATH = f'{MODEL_PATH}/data_tensor_{epoch}.pt'
-    Batch_Size = 2225
-    neuron_nbr = 60
+    Batch_Size = 1000
+    neuron_nbr = 40
     loader: CUDADataset = CUDADataset(data_path=MODEL_PATH,
                                       data_set=data_set,
                                       data_set_name=DATA_SET,
@@ -121,9 +121,13 @@ if __name__ == '__main__':
                                       batch_size=Batch_Size,
                                       epochs=1,
                                       alpha=alpha[DATA_SET])
-    loader.generate_batches()
+    # loader.generate_batches()
     model_name = f'STM_CUDA_{neuron_nbr}'
     training = False
+
+    for doc in data_set.train_tokens():
+        print(doc)
+
     if training:
         stmModel = STMGPUrunner(FEATURE_LIMIT,
                                 neuron_nbr=neuron_nbr,
@@ -131,48 +135,57 @@ if __name__ == '__main__':
                                 tau_post=15,
                                 beta=0.8,
                                 threshold=0.1,
-                                learning_rate=0.001)
+                                learning_rate=0.0001)
 
-        stmModel.train(loader, 20, 50)
+        stmModel.train(loader, 10, 50)
 
         stmModel.save(MODEL_PATH, model_name)
 
     stmModel = STMGPUrunner.load(MODEL_PATH, model_name)
 
-    topics = stmModel.topics(data_set.features())
-    print(topics)
-    word2id = Dictionary(data_set.train_tokens())
-    cm = CoherenceModel(topics=topics,
-                        texts=data_set.train_tokens(),
-                        coherence='c_npmi',
-                        dictionary=word2id)
-    coherence_per_topic = cm.get_coherence_per_topic()
-    cm.get_coherence()
-    print(cm.get_coherence())
-    words = set()
-    for t in topics:
-        words.update(t)
-    print(len(words) / (len(topics) * 10))
-    rep = stmModel.encode_docs_dense(loader, 50)
-    for r in rep:
-        print(r)
-    probs_norm = normalize(rep)
-    print(probs_norm)
-    samples = int(loader.number_of_batches * loader.batch_size)
-    train = probs_norm
-    test = probs_norm
+    topics = stmModel.topics(data_set.features(), top=30)
+    # print(topics)
+    # word2id = Dictionary(data_set.train_tokens())
+    # cm = CoherenceModel(topics=topics,
+    #                     texts=data_set.train_tokens(),
+    #                     coherence='c_npmi',
+    #                     dictionary=word2id)
+    #
+    # cm.get_coherence()
+    # print(cm.get_coherence())
+    # words = set()
+    # for t in topics:
+    #     words.update(t)
+    # print(len(words) / (len(topics) * 10))
+    # rep = stmModel.encode_docs_dense(loader, 50)
+    # for r in rep:
+    #     print(r)
+    # probs_norm = normalize(rep)
+    # print(probs_norm)
+    # samples = int(loader.number_of_batches * loader.batch_size)
+    # train = probs_norm
+    # test = probs_norm
 
-    clf = LogisticRegression(random_state=0).fit(train, data_set.train_labels())
-    pred = clf.predict(test)
+    # clf = LogisticRegression(random_state=0).fit(train, data_set.train_labels()[:samples])
+    # pred = clf.predict(test)
 
-    clsf = ClassificationMetrics(pred, data_set.train_labels(), data_set.categories())
-    clsf.calculate_results()
-    print(clsf.to_fancy_string())
-
-    rep = stmModel.encode_docs_dense_mini_batch(loader, 50, [['play','console']]).cpu().numpy()
-    max_topic = np.argmax(rep)
-    print(rep)
-    print(np.argmax(rep), topics[max_topic])
+    # clsf = ClassificationMetrics(pred, data_set.train_labels()[:samples], data_set.categories())
+    # clsf.calculate_results()
+    # print(clsf.to_fancy_string())
+    phrases = [['player', 'cricket'], ['music', 'player']]
+    rep = stmModel.encode_docs_dense_mini_batch(loader, 50,
+                                                phrases).cpu().numpy()
+    norm_rep = normalize(rep)
+    print(np.matmul(norm_rep, norm_rep.T))
+    print(norm_rep.shape)
+    max_topic = np.argmax(norm_rep)
+    max_topics = np.argsort(rep)[-3:]
+    print(max_topic)
+    print(max_topics.shape)
+    for id, phrase in enumerate(phrases):
+        for top_id in reversed(max_topics[id]):
+            if norm_rep[0][top_id] > 0:
+                print(phrase, topics[top_id])
 
     # clustering_met: RetrivalMetrics = RetrivalMetrics("cuda-stm", neuron_nbr, probs_norm, probs_norm,
     #                                                   data_set.train_labels()[:samples],
