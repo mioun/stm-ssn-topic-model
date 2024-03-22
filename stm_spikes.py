@@ -5,6 +5,7 @@ import time
 
 import numpy as np
 from brian2 import set_device
+from gensim.models import CoherenceModel
 
 from model.ds.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
@@ -99,15 +100,23 @@ for N in [40]:
             model = STMModelRunner.load(MODEL_PATH, model_name)
             # Coherence Evaluation
 
-            metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM', N, model, ENDPOINT_PALMETTO)
-            metrics.generate_metrics()
-            metrics.save(MODEL_PATH, f'{model_name}_topic_metrics')
-            metrics.save_results_csv(DATA_SET, N, 'STM', MODEL_PATH)
+            # metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM', N, model, ENDPOINT_PALMETTO)
+            # metrics.generate_metrics()
+            # metrics.save(MODEL_PATH, f'{model_name}_topic_metrics')
+            # metrics.save_results_csv(DATA_SET, N, 'STM', MODEL_PATH)
+            #
+            # met: TopicMetrics = TopicMetrics.load(MODEL_PATH, f'{model_name}_topic_metrics')
 
-            met: TopicMetrics = TopicMetrics.load(MODEL_PATH, f'{model_name}_topic_metrics')
+            # cm = CoherenceModel(topics=topics,
+            #                     texts=data_set.train_tokens(),
+            #                     coherence='c_npmi',
+            #                     dictionary=word2id)
+            # coherence_per_topic = cm.get_coherence_per_topic()
+            # cm.get_coherence()
+            # print(cm.get_coherence())
 
-            for t in met.topics:
-                print(f'{t.metrics["npmi"]}, {t.metrics["ca"]}, {t.words}')
+            # for t in met.topics:
+            #     print(f'{t.metrics["npmi"]}, {t.metrics["ca"]}, {t.words}')
 
             # Purity Evaluation
             with open(f'{MODEL_PATH}/{model_name}_rep.npy', 'wb') as f:
