@@ -30,11 +30,14 @@ class STMModelRunner:
                  inh: float,
                  config_path: str,
                  alpha: float,
+                 compilation_path: str,
                  learning_window:
                  int = 50,
                  tau_scaling=100,
                  minimum_spikes=250,
                  eta=0.001):
+
+        self.compilation_path = compilation_path
         self.eta = eta
         self.tau_scaling = tau_scaling
         self.learning_window = learning_window
@@ -107,6 +110,8 @@ class STMModelRunner:
             return {}
 
     def train_epoch(self, doc_tokens: List):
+        if self.compilation_path:
+            set_device('cpp_standalone', directory=self.compilation_path)
         input_spiking_batch: SpikingBatch = self.prepare_batch(input_size=self.FEATURE_LIMIT,
                                                                input_features=self.feature_list,
                                                                freq_map=self.freq_map,
@@ -117,6 +122,7 @@ class STMModelRunner:
         defaultclock.dt = 1 * ms
         network.run(input_spiking_batch.effective_simulation_time() * ms, report='text', report_period=60 * second)
         self.encoder_weights = self.get_weights_data(network, 'encoder')
+        device.delete(force=True)
         device.reinit()
         device.activate()
 
@@ -128,6 +134,8 @@ class STMModelRunner:
             self.train_epoch(docs)
 
     def represent(self, doc_tokens: List, inhibition=None):
+        if self.compilation_path:
+            set_device('cpp_standalone', directory=self.compilation_path)
         input_spiking_batch: SpikingBatch = self.prepare_batch(input_size=self.FEATURE_LIMIT,
                                                                input_features=self.feature_list,
                                                                freq_map=self.freq_map,
@@ -140,6 +148,7 @@ class STMModelRunner:
         network.run(input_spiking_batch.effective_simulation_time() * ms, report='text', report_period=60 * second)
         monitor: SpikeMonitor = network.get_states()['spike_monitor']
         times, neurons = monitor['t'] / ms, monitor['i']
+        device.delete(force=True)
         device.reinit()
         device.activate()
         return self.represent_spikes_as_matrix(input_spiking_batch, times, neurons, self.encoder_size)

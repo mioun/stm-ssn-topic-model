@@ -4,7 +4,8 @@ import os
 import time
 
 import numpy as np
-from brian2 import set_device
+from brian2 import set_device, device
+from gensim.corpora import Dictionary
 from gensim.models import CoherenceModel
 
 from model.ds.dataset_loader import DatasetLoader
@@ -59,15 +60,17 @@ print(np.median(doc_lenght))
 # it is recommended to use local Palemtto service please follow the instruction on
 # https://github.com/dice-group/Palmetto/wiki/How-Palmetto-can-be-used
 ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
-if not os.path.exists(f'{MODEL_PATH}/output'):
-    os.makedirs(f'{MODEL_PATH}/output')
-set_device('cpp_standalone', directory=f'{MODEL_PATH}/output')
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_PATH)
+time_file = open(f'{MODEL_PATH}/spike-number.csv', 'a+')
+writer = csv.writer(time_file)
+
 for N in [40]:
-    for i in range(5):
+    for i in range(3):
         for spike_nbr in [30, 60, 90, 120, 150, 180]:
             print(f'{DATA_SET} {FEATURE_LIMIT} {i} {spike_nbr}')
             model_name = f'STM_{N}_{spike_nbr}_{i}'
-
+            row = [N, spike_nbr, i, ]
             model = STMModelRunner(feature_limit=FEATURE_LIMIT,
                                    feature_list=data_set.features(),
                                    freq_map=data_set.frequency_map(),
@@ -79,6 +82,7 @@ for N in [40]:
                                    learning_window=learning_window[DATA_SET],
                                    tau_scaling=tau_scaling[DATA_SET],
                                    minimum_spikes=spike_nbr,
+                                   compilation_path=f'{MODEL_PATH}/brain_output',
                                    eta=eta[DATA_SET])
             train_tmp = []
 
@@ -91,32 +95,28 @@ for N in [40]:
 
             TRAINING_EPOCHS = 1
             model.train(TRAINING_EPOCHS, train_tmp)
-
-            total_time = time.time() - start_time
-            writer.writerow([model_name, total_time, DATA_SET])
-            time_file.flush()
             model.save(MODEL_PATH, model_name)
 
             model = STMModelRunner.load(MODEL_PATH, model_name)
             # Coherence Evaluation
 
-            # metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM', N, model, ENDPOINT_PALMETTO)
-            # metrics.generate_metrics()
-            # metrics.save(MODEL_PATH, f'{model_name}_topic_metrics')
-            # metrics.save_results_csv(DATA_SET, N, 'STM', MODEL_PATH)
-            #
-            # met: TopicMetrics = TopicMetrics.load(MODEL_PATH, f'{model_name}_topic_metrics')
+            word2id = Dictionary(data_set.train_tokens())
+            topics = [t.words for t in model.extract_topics_from_model(10)]
+            cm = CoherenceModel(topics=topics,
+                                texts=data_set.train_tokens(),
+                                coherence='c_npmi',
+                                dictionary=word2id)
+            coherence_per_topic = cm.get_coherence_per_topic()
+            print(coherence_per_topic)
+            cm.get_coherence()
+            row.append(np.round(cm.get_coherence(), 3))
 
-            # cm = CoherenceModel(topics=topics,
-            #                     texts=data_set.train_tokens(),
-            #                     coherence='c_npmi',
-            #                     dictionary=word2id)
-            # coherence_per_topic = cm.get_coherence_per_topic()
-            # cm.get_coherence()
-            # print(cm.get_coherence())
+            words = set()
+            for t in topics:
+                words.update(t)
+            puw = len(words) / (len(topics) * 10)
 
-            # for t in met.topics:
-            #     print(f'{t.metrics["npmi"]}, {t.metrics["ca"]}, {t.words}')
+            row.append(np.round(puw, 3))
 
             # Purity Evaluation
             with open(f'{MODEL_PATH}/{model_name}_rep.npy', 'wb') as f:
@@ -136,3 +136,7 @@ for N in [40]:
             print(clustering_met.calculate_silhouette_score(data_set.train_tokens()))
             print("Purity STM: ", clustering_met.purity)
             clustering_met.save(MODEL_PATH, model_name)
+            row.append(np.round(clustering_met.purity, 3))
+            row.append(np.round(clustering_met.calculate_silhouette_score(data_set.train_tokens()), 3))
+            writer.writerow(row)
+            time_file.flush()

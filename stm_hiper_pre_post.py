@@ -4,7 +4,7 @@ import os
 import time
 
 import numpy as np
-from brian2 import set_device
+from brian2 import set_device, device
 from gensim.corpora import Dictionary
 from gensim.models import CoherenceModel
 
@@ -47,7 +47,6 @@ eta = {'bbc': 0.0006, '20news': 0.0003, 'ag': 0.0003}
 learning_window = {'bbc': 50, '20news': 50, 'ag': 50}
 epoch = {'bbc': 15, '20news': 8, 'ag': 5}
 
-
 data = data_set.train_tokens()
 
 doc_lenght = []
@@ -59,16 +58,15 @@ print(np.median(doc_lenght))
 # it is recommended to use local Palemtto service please follow the instruction on
 # https://github.com/dice-group/Palmetto/wiki/How-Palmetto-can-be-used
 ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
-if not os.path.exists(f'{MODEL_PATH}/output'):
-    os.makedirs(f'{MODEL_PATH}/output')
-set_device('cpp_standalone', directory=f'{MODEL_PATH}/output')
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(MODEL_PATH)
 time_file = open(f'{MODEL_PATH}/tau_prepost_results.csv', 'a+')
 writer = csv.writer(time_file)
 
 for N in [30]:
-    for i in range(5):
-        for tau_pre in [1, 5, 10, 20, 30, 50, 100, 200]:
-            for tau_post in [1, 5, 10, 20, 30, 50, 100, 200]:
+    for i in range(3):
+        for tau_pre in [1, 5, 10, 20, 30, 50, 100]:
+            for tau_post in [1, 5, 10, 20, 30, 50, 100]:
                 model_name = f'STM_{N}_{tau_pre}_{tau_post}_{i}'
                 row = [N, tau_pre, tau_post, i, ]
                 model = STMModelRunner(feature_limit=FEATURE_LIMIT,
@@ -82,7 +80,8 @@ for N in [30]:
                                        learning_window=tau_pre,
                                        tau_scaling=tau_post,
                                        minimum_spikes=150,
-                                       eta=eta[DATA_SET])
+                                       eta=eta[DATA_SET],
+                                       compilation_path=f'{MODEL_PATH}/brian_output')
                 train_tmp = []
 
                 # training is faster in batches in such case, training can be done by adding several times data set to the batch
@@ -100,19 +99,23 @@ for N in [30]:
                 model: STMModelRunner = STMModelRunner.load(MODEL_PATH, model_name)
                 # Coherence Evaluation
 
-                metrics: TopicMetrics = TopicMetricsFactory.get_metric('STM', N, model, ENDPOINT_PALMETTO)
-
                 word2id = Dictionary(data_set.train_tokens())
-                cm = CoherenceModel(topics=[t.words for t in model.extract_topics_from_model(10)],
+                topics = [t.words for t in model.extract_topics_from_model(10)]
+                cm = CoherenceModel(topics=topics,
                                     texts=data_set.train_tokens(),
                                     coherence='c_npmi',
                                     dictionary=word2id)
                 coherence_per_topic = cm.get_coherence_per_topic()
                 print(coherence_per_topic)
                 cm.get_coherence()
-                row.append(np.round(cm.get_coherence(), 4))
+                row.append(np.round(cm.get_coherence(), 3))
 
-                print(cm.get_coherence())
+                words = set()
+                for t in topics:
+                    words.update(t)
+                puw = len(words) / (len(topics) * 10)
+
+                row.append(np.round(puw, 3))
 
                 # metrics.save(MODEL_PATH, f'{model_name}_topic_metrics')
                 # metrics.save_results_csv(DATA_SET, N, 'STM', MODEL_PATH)
