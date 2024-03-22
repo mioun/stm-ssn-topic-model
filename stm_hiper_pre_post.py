@@ -47,8 +47,7 @@ eta = {'bbc': 0.0006, '20news': 0.0003, 'ag': 0.0003}
 learning_window = {'bbc': 50, '20news': 50, 'ag': 50}
 epoch = {'bbc': 15, '20news': 8, 'ag': 5}
 
-time_file = open(f'{MODEL_PATH}/tau_prepost_results.csv', 'a+')
-writer = csv.writer(time_file)
+
 data = data_set.train_tokens()
 
 doc_lenght = []
@@ -63,6 +62,8 @@ ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
 if not os.path.exists(f'{MODEL_PATH}/output'):
     os.makedirs(f'{MODEL_PATH}/output')
 set_device('cpp_standalone', directory=f'{MODEL_PATH}/output')
+time_file = open(f'{MODEL_PATH}/tau_prepost_results.csv', 'a+')
+writer = csv.writer(time_file)
 
 for N in [30]:
     for i in range(5):
