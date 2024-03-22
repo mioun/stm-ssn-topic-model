@@ -4,6 +4,7 @@ import os
 import time
 
 import numpy as np
+from brian2 import set_device
 
 from model.ds.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
@@ -26,8 +27,8 @@ if params:
     DATA_SET = params['data_set']
     FEATURE_LIMIT = int(params['features_limit'])
 else:
-    DATA_SET = '20news'
-    FEATURE_LIMIT = 5000
+    DATA_SET = 'bbc'
+    FEATURE_LIMIT = 2000
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
@@ -57,10 +58,13 @@ print(np.median(doc_lenght))
 # it is recommended to use local Palemtto service please follow the instruction on
 # https://github.com/dice-group/Palmetto/wiki/How-Palmetto-can-be-used
 ENDPOINT_PALMETTO = 'http://palmetto.aksw.org/palmetto-webapp/service/'
-
+if not os.path.exists(f'{MODEL_PATH}/output'):
+    os.makedirs(f'{MODEL_PATH}/output')
+set_device('cpp_standalone', directory=f'{MODEL_PATH}/output')
 for N in [40]:
     for i in range(5):
         for spike_nbr in [30, 60, 90, 120, 150, 180]:
+            print(f'{DATA_SET} {FEATURE_LIMIT} {i} {spike_nbr}')
             model_name = f'STM_{N}_{spike_nbr}_{i}'
 
             model = STMModelRunner(feature_limit=FEATURE_LIMIT,
@@ -106,14 +110,14 @@ for N in [40]:
                 print(f'{t.metrics["npmi"]}, {t.metrics["ca"]}, {t.words}')
 
             # Purity Evaluation
-            with open(f'{MODEL_PATH}\{model_name}_rep.npy', 'wb') as f:
+            with open(f'{MODEL_PATH}/{model_name}_rep.npy', 'wb') as f:
                 train_represent = model.represent_norm(data_set.train_tokens())
                 np.save(f, train_represent)
-            with open(f'{MODEL_PATH}\{model_name}_rep_dense.npy', 'wb') as f:
+            with open(f'{MODEL_PATH}/{model_name}_rep_dense.npy', 'wb') as f:
                 model = STMModelRunner.load(MODEL_PATH, model_name)
                 train_represent = model.represent_norm(data_set.train_tokens(), 1)
                 np.save(f, train_represent)
-            with open(f'{MODEL_PATH}\{model_name}_rep.npy', 'rb') as f:
+            with open(f'{MODEL_PATH}/{model_name}_rep.npy', 'rb') as f:
                 train_represent = np.load(f)
 
             clustering_met: RetrivalMetrics = RetrivalMetrics(model_name, N, train_represent, train_represent,
