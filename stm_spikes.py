@@ -32,7 +32,7 @@ else:
 
 DATA_SET_PATH = f'model-input-data/{DATA_SET}'
 CONFIG_PATH = 'network-configuration'
-MODEL_PATH = f'model-output-data/{DATA_SET}-spike-exp'
+MODEL_PATH = f'model-output-data/{DATA_SET}-spike-exp-final'
 
 data_set: DatasetInterface = DatasetLoader(DATA_SET, FEATURE_LIMIT, DATA_SET_PATH).load_dataset()
 
@@ -84,7 +84,7 @@ for N in [40]:
             # training is faster in batches in such case, training can be done by adding several times data set to the batch
             # here the data set is added 15 times to batch == 15 training epoch
 
-            for i in range(epoch[DATA_SET]):
+            for _ in range(epoch[DATA_SET]):
                 train_tmp.extend(data_set.train_tokens())
             start_time = time.time()
 
