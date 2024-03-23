@@ -65,11 +65,8 @@ class RetrivalMetrics:
         max_doc_cluster = np.sum([p for p in np.max(cluster_label_assignment, axis=1)])
         self.purity = max_doc_cluster / len(self.test_labels)
 
-    def calculate_silhouette_score(self, docs):
+    def calculate_silhouette_score(self):
         labels = np.argmax(self.test_topic_probability, axis=1)
-        vectorizer = TfidfVectorizer()
-        X = vectorizer.fit_transform([" ".join(doc) for doc in docs])
-        print(X.toarray().shape)
         return silhouette_score(self.train_topic_probability, labels, metric='cosine')
 
     def save(self, result_folder, model_name):
