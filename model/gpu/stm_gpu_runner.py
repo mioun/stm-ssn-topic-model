@@ -48,6 +48,7 @@ class STMGPUrunner(ABC):
             self.net[0].weight = nn.Parameter(torch_weights)
         else:
             nn.init.uniform_(self.net[0].weight.data, 0, 1)
+        self.net = self.net.half()
         self.net.to(self.device)
         self.sdp_learner = stdp_learner.STDPLearner2(synapse=self.net[0], sn=self.net[1],
                                                      tau_pre=tau_pre, tau_post=tau_post,
@@ -56,28 +57,29 @@ class STMGPUrunner(ABC):
         self.sdp_learner.to(self.device)
         self.optimizer = torch.optim.SGD(self.net.parameters(), lr=self.learning_rate, momentum=0.)
 
-    def train(self, loader: CUDADataset, epoch_nbr, steps):
+    def train(self, loader: CUDADataset, epoch_nbr, steps, indexes: list = None):
         for _ in tqdm(range(epoch_nbr)):
             for batch_idx in range(loader.number_of_batches):
                 batch = loader.load_batch(batch_idx).to_dense()
                 batch = batch.reshape(loader.batch_size, steps, self.squuze, self.input_size)
-                print(batch.shape)
+                if indexes is not None:
+                    batch = batch[indexes]
                 batch = torch.clamp(batch.sum(dim=2), 0, 1)
                 batch_in = batch.transpose(0, 1)
-                self.train_batch(batch_in, steps)
+                self.train_batch(batch_in, steps, indexes)
 
     def encode_docs(self, loader: CUDADataset, steps):
         encoding = []
         self.sdp_learner.disable()
-        for batch_idx in range(loader.number_of_batches):
+        for batch_idx in tqdm(range(loader.number_of_batches)):
             batch = loader.load_batch(batch_idx).to_dense()
             batch = batch.reshape(loader.batch_size, steps, self.squuze, self.input_size)
             batch = torch.clamp(batch.sum(dim=2), 0, 1)
             batch_in = batch.transpose(0, 1)
             encoding.append(self.encode_batch(batch_in, steps))
-        return torch.concat(encoding).numpy()
+        return torch.concat(encoding).numpy()[:loader.document_size]
 
-    def train_batch(self, batch, time_steps):
+    def train_batch(self, batch, time_steps, indexes: list = None):
         with torch.no_grad():
             for t in range(time_steps):
                 batch_t = batch[t].to(self.device)
@@ -99,9 +101,9 @@ class STMGPUrunner(ABC):
         weights = self.net[0].weight.data.cpu()
         self.net = nn.Sequential(
             nn.Linear(self.input_size, self.neuron_nbr),
-            snn.Leaky(beta=0.8, init_hidden=True, inhibition=True, threshold=0.1)
+            snn.Leaky(beta=0.3, init_hidden=True, inhibition=False, threshold=0.5)
         )
-        print(weights)
+
         self.net[0].weight.data = weights
         print(self.net[0].weight.data.shape)
         self.net.to(self.device)
@@ -111,7 +113,7 @@ class STMGPUrunner(ABC):
         weights = self.net[0].weight.data.cpu()
         self.net = nn.Sequential(
             nn.Linear(self.input_size, self.neuron_nbr),
-            snn.Leaky(beta=0.8, init_hidden=True, inhibition=True, threshold=0.1)
+            snn.Leaky(beta=0.8, init_hidden=True, inhibition=False, threshold=0.5)
         )
         print(weights)
         self.net[0].weight.data = weights
@@ -124,6 +126,14 @@ class STMGPUrunner(ABC):
         small_batch = torch.clamp(small_batch.sum(dim=2), 0, 1)
         batch_in = small_batch.transpose(0, 1)
         return self.encode_batch(batch_in, steps)
+
+    def doc_cluster_mapping(self, loader: CUDADataset, steps=50):
+        topic_map = {idx: [] for idx in range(self.neuron_nbr)}
+        print(np.argmax(self.encode_docs(loader, steps), axis=1))
+        for idx, top in enumerate(np.argmax(self.encode_docs(loader, steps), axis=1)):
+            print(top)
+            topic_map[top].append(idx)
+        return topic_map
 
     def topics(self, features, top=10) -> list:
 
@@ -148,6 +158,7 @@ class STMGPUrunner(ABC):
              'w_min',
              'w_max',
              'tau_post',
+             'squuze',
              'tau_pre',
              'neuron_nbr',
              'input_size'])
@@ -164,16 +175,17 @@ class STMGPUrunner(ABC):
     def load(folder, model_name):
         path = os.path.join(folder, model_name)
         network_dict: dict = pickle.load(open(path, "rb"))
+        w = network_dict['weights']
         return STMGPUrunner(input_size=network_dict['input_size'],
                             neuron_nbr=network_dict['neuron_nbr'],
                             tau_pre=network_dict['tau_pre'],
                             tau_post=network_dict['tau_post'],
                             beta=network_dict['beta'],
+                            squuze=network_dict['squuze'],
                             threshold=network_dict['threshold'],
                             learning_rate=network_dict['learning_rate'],
                             device="cuda",
-                            squuze=3,
-                            weights_data=network_dict['weights']
+                            weights_data=w
                             )
 
     @staticmethod

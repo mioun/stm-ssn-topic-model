@@ -86,7 +86,7 @@ class STDPLearner2(nn.Module):
             delta_w = dw if (delta_w is None) else (delta_w + dw)
         if on_grad:
             if self.synapse.weight.grad is None:
-                self.synapse.weight.grad = -delta_w
+                self.synapse.weight.grad = -delta_w.half()
             else:
                 self.synapse.weight.grad = self.synapse.weight.grad - delta_w
         else:

@@ -37,6 +37,9 @@ class CUDADataset(ABC):
         return f'{self.data_path}/data_tensor_{self.data_set_name}_{batch_id}.pt'
 
     def generate_batches(self, docs_ids: list = None):
+        if os.path.exists(self.data_path):
+            print("Data Set exists")
+            return
         if not os.path.exists(self.data_path):
             os.makedirs(self.data_path)
 
@@ -99,7 +102,7 @@ class CUDADataset(ABC):
         sparse_tensors = []
         spike_idx = 0
         t_idx = 0
-        doc_tensor = torch.zeros((self.number_of_steps, len(self.data_set.features())))
+        doc_tensor = torch.zeros((self.number_of_steps, len(self.data_set.features()))).to(torch.float16)
         if len(doc) == 0:
             return doc_tensor.to_sparse()
         while spike_idx < self.number_of_steps:
