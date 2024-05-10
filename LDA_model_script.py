@@ -8,7 +8,7 @@ from gensim import corpora, models
 from gensim.models import LdaModel
 from sklearn.preprocessing import normalize
 
-from model.datasets.dataset_loader import DatasetLoader
+from model.ds.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
 from model.preprocessing.dataset_interface import DatasetInterface
 from model.utils.key_value_action import KeyValueAction

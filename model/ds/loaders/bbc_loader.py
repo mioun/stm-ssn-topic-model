@@ -1,6 +1,6 @@
 import os
 
-from model.datasets.loaders.base_data_loader import BaseDataLoader
+from model.ds.loaders.base_data_loader import BaseDataLoader
 
 categories = [
     'business', 'entertainment', 'politics', 'sport', 'tech']

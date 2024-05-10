@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pandas as pd
 
-from model.datasets.loaders.base_data_loader import BaseDataLoader
+from model.ds.loaders.base_data_loader import BaseDataLoader
 
 
 class AGLoader(BaseDataLoader):

@@ -62,3 +62,7 @@ There is also `TOPIC_eval.py` script which can be used to evaluate topics.
 
 Analogically cluster purity and information retrieval is performed. `IR_PURITY_eval.py` script loads the topic-based representation of the dataset from the  `\model-output-folder` for each model than purity and fscore are calculated. After that, the script saves the result in the `\model-output-folder`.
 
+
+## GPU implementation (STMG)
+
+The STMG-model-script.py is a GPU-version of STM method. 

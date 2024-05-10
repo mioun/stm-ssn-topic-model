@@ -8,7 +8,7 @@ import pickle as pkl
 
 from sklearn.preprocessing import normalize
 
-from model.datasets.dataset_loader import DatasetLoader
+from model.ds.dataset_loader import DatasetLoader
 from model.evaluation.retrival_metrics import RetrivalMetrics
 from model.preprocessing.dataset_interface import DatasetInterface
 from topic.topic_metric_factory import TopicMetricsFactory

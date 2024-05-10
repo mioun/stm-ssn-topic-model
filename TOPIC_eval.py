@@ -9,7 +9,7 @@ import pickle as pkl
 from gensim import corpora
 from gensim.models import LdaModel, CoherenceModel
 
-from model.datasets.dataset_loader import DatasetLoader
+from model.ds.dataset_loader import DatasetLoader
 from model.network.stm_model_runner import STMModelRunner
 from model.preprocessing.dataset_interface import DatasetInterface
 from model.topic.topic_metric_factory import TopicMetricsFactory
